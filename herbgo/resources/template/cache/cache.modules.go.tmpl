@@ -1,0 +1,19 @@
+package {{.Lower}}
+
+import (
+	"modules/app"
+	"github.com/herb-go/herb/cache"
+	"github.com/herb-go/util"
+)
+
+//ModuleName module name
+const ModuleName="100{{.LowerWithParentDotSeparated}}"
+
+//{{.Pascal}} app cache component.
+var {{.Pascal}} = cache.New()
+
+func init() {
+	util.RegisterModule(ModuleName, func() {
+		util.Must({{.Pascal}}.Init(&app.{{.PascalWithParents}}))
+	})
+}

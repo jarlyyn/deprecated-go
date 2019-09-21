@@ -1,0 +1,50 @@
+package models
+
+//{{.Name.Pascal}}Model :{{.Name.Raw }} model 
+type {{.Name.Pascal}}Model struct{
+    {{.Name.Pascal}}ModelFields
+}
+
+//BeforeInsert event called before mapper insert.
+//You should call this event before your own insert query.
+ func (m *{{.Name.Pascal}}Model) BeforeInsert() error {
+ 	return nil
+ }
+
+//AfterInsert event called after mapper insert.
+//You should call this event before your own insert query.
+ func (m *{{.Name.Pascal}}Model) AfterInsert() error {
+ 	return nil
+ }
+
+//BeforeUpdate event called before mapper update.
+//You should call this event before your own update query.
+ func (m *{{.Name.Pascal}}Model) BeforeUpdate() error {
+ 	return nil
+ }
+
+//AfterUpdate event called after mapper update.
+//You should call this event after your own update query.
+ func (m *{{.Name.Pascal}}Model) AfterUpdate() error {
+ 	return nil
+ }
+
+//AfterFind event called after mapper find.
+//You should call this event after your own find query.
+ func (m *{{.Name.Pascal}}Model) AfterFind() error {
+ 	return nil
+ }
+
+//AfterDelete event called after mapper delete.
+//You should call this event after your own delete query.
+ func (m *{{.Name.Pascal}}Model) AfterDelete() error {
+ 	return nil
+ }
+
+//New{{.Name.Pascal}}Model create new {{.Name.Pascal}}Model
+func New{{.Name.Pascal}}Model() *{{.Name.Pascal}}Model{
+	model:=&{{.Name.Pascal}}Model{
+        //put your own model init code here
+    }
+    return model
+}

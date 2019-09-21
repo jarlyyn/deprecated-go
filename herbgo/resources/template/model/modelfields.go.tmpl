@@ -1,0 +1,67 @@
+package models
+
+import (
+	{{- if .Columns.HasTime}}
+    "time"
+    {{end}}
+	"github.com/herb-go/herb/model/sql/querybuilder"
+)
+{{$Name := .Name}}
+
+//{{.Name.Pascal}}ModelFields :{{.Name.Raw }} model fields
+type {{.Name.Pascal}}ModelFields struct {
+	querybuilder.CommonQueryEvents
+	{{- range .Columns.Columns}}
+	{{.Name}} {{if not .NotNull }}*{{end}}{{.ColumnType}}
+	{{- end}}
+}
+
+
+func (f *{{.Name.Pascal}}ModelFields) BuildFields(withAlias bool, columns ...string) *querybuilder.Fields {
+	var field string
+	fields := querybuilder.NewFields()
+	for k := range columns {
+		field = columns[k]
+		if withAlias {
+			field = {{.Name.Pascal}}.FieldAlias(field)
+		}
+		switch columns[k] {
+		{{- range .Columns.Columns}}
+		case {{$Name.Pascal}}Field{{.Name}}:
+			fields.Set(field, &f.{{.Name}})
+			{{- end}}	
+		}
+	}
+	return fields
+}
+const(
+	{{- range .Columns.Columns}}
+	//{{$Name.Pascal}}Field{{.Name}} model column name of field {{.Field}}
+	{{$Name.Pascal}}Field{{.Name}} = "{{.Field}}"
+	{{- end}}
+)
+
+var(
+	{{- range .Columns.Columns}}
+	//{{$Name.Pascal}}FieldAlias{{.Name}} model column name with table alias of field {{.Field}}
+	{{$Name.Pascal}}FieldAlias{{.Name}} = {{$Name.Pascal}}TableAlias+".{{.Field}}"
+	{{- end}}
+)
+
+{{.Columns.PrimaryKeyType}}
+
+{{.Columns.ModelPrimaryKey}}
+{{.Columns.BuildByPKQuery}}
+
+{{.Columns.ColumnsToFieldsMethod ""}}
+
+{{.Columns.ColumnsToFieldsInsertMethod ""}}
+
+{{.Columns.ColumnsToFieldsUpdateMethod ""}}
+
+//PrimaryKeyFields : primary key fields of table {{.Name.Raw}} 
+func (mapper *{{.Name.Pascal}}Mapper) PrimaryKeyFields() []string{
+	return []string{
+{{range .Columns.PrimaryKeys}}        {{$Name.Pascal}}Field{{.Name}} ,
+{{end}}    }
+}

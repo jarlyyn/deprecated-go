@@ -1,0 +1,97 @@
+package models
+
+import (
+	"database/sql"
+	{{if .Columns.HasTime}}"time"
+    {{end}}
+	"github.com/herb-go/herb/model/sql/querybuilder"
+
+)
+
+
+
+{{ if or (.Confirmed.WithFind) (.Confirmed.WithFindAll) -}}
+//{{.QueryName.Pascal}}BuildSelect : build select query and bind model for table {{.Name.Raw}}  with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}BuildSelect() *querybuilder.Select{
+	Select:=mapper.NewSelect()
+	Select.Select.AddFields(mapper.Fields(nil))
+	return Select
+}
+{{- end }}
+
+{{ if .Confirmed.WithInsert -}}
+//{{.QueryName.Pascal}}BuildInsert : build insert query and bind model for table {{.Name.Raw}} with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}BuildInsert(model *{{.Name.Pascal}}Model) *querybuilder.Insert{
+	Insert:=mapper.NewInsert()
+	Insert.Insert.AddFields(mapper.FieldsInsert(model))
+    return Insert
+}
+
+//{{.QueryName.Pascal}}Insert : insert {{.Name.Raw}}  model to database with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}Insert(model *{{.Name.Pascal}}Model) (sql.Result,error){
+	Insert :=mapper.BuildInsert(model)
+	return Insert.Query().Exec(mapper)
+}
+
+{{- end }}
+
+{{ if .Confirmed.WithUpdate -}}
+//{{.QueryName.Pascal}}BuildUpdate : build update query and bind model for table {{.Name.Raw}}  with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}BuildUpdate(pk interface{} ,model *{{.Name.Pascal}}Model) *querybuilder.Update{
+	Update:=mapper.NewUpdate()
+	Update.Update.AddFields(mapper.FieldsUpdate(model))
+	Update.Where.Condition=mapper.BuildByPKQuery(pk)
+	return Update
+}
+
+//{{.QueryName.Pascal}}Update : update {{.Name.Raw}}  model in database with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}Update(pk interface{} ,model *{{.Name.Pascal}}Model) (sql.Result,error){
+	Update :=mapper.BuildUpdate(pk,model)
+	return Update.Query().Exec(mapper)
+}
+
+
+{{- end }}
+
+
+
+
+
+
+{{ if .Confirmed.WithFind -}}
+//{{.QueryName.Pascal}}Find : find {{.Name.Pascal}}Model from table {{.Name.Raw}} by given select query with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}Find(Select *querybuilder.Select) (*{{.Name.Pascal}}Model,error){
+    model:=New{{.Name.Pascal}}Model()
+	row := Select.QueryRow(mapper)
+	err := Select.Result().
+		BindFields(mapper.Fields(model)).
+		ScanFrom(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return model, err
+}
+{{- end }}
+
+{{ if .Confirmed.WithFindAll -}}
+//{{.QueryName.Pascal}}FindAll : find all {{.Name.Pascal}}Model from table {{.Name.Raw}} by given select query with {{.QueryName.Raw}} fields 
+func (mapper *{{.Name.Pascal}}Mapper) {{.QueryName.Pascal}}FindAll(Select *querybuilder.Select) ([]*{{.Name.Pascal}}Model,error){
+    var result=[]*{{.Name.Pascal}}Model{}
+	rows, err := Select.QueryRows(mapper)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+	    model:=New{{.Name.Pascal}}Model()
+		err = Select.Result().
+			BindFields(mapper.Fields(model)).
+			ScanFrom(rows)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, model)
+	}
+    return result,nil
+}
+{{- end }}

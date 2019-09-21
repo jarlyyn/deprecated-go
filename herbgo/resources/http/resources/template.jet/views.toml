@@ -1,0 +1,4 @@
+#   DevelopmentMode=true
+[Views.index]
+Files=["views/index.jet"]
+#   DevelopmentMode=false

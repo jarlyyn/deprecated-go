@@ -1,0 +1,4 @@
+#   DevelopmentMode=true
+[Views.index]
+Files=["layouts/main.tmpl", "views/index.tmpl"]
+#   DevelopmentMode=false

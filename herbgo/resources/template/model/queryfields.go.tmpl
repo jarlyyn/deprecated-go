@@ -1,0 +1,22 @@
+package models
+
+import (
+	{{- if .Columns.HasTime}}
+    "time"
+    {{end}}
+	"github.com/herb-go/herb/model/sql/querybuilder"
+)
+
+{{ if or (.Confirmed.WithFind) (.Confirmed.WithFindAll) -}}
+
+{{.Columns.ColumnsToFieldsMethod .Query}}
+
+{{- end }}
+
+{{ if .Confirmed.WithInsert -}}
+{{.Columns.ColumnsToFieldsInsertMethod .Query}}
+{{- end }}
+
+{{ if .Confirmed.WithUpdate -}}
+{{.Columns.ColumnsToFieldsUpdateMethod .Query}}
+{{- end }}

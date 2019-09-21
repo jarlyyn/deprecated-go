@@ -1,0 +1,189 @@
+package actions
+
+import (
+	"net/http"
+    "modules/{{.Module}}/forms"
+    "modules/{{.Module}}/models"
+    "modules/{{.Module}}/outputs"
+
+	"github.com/herb-go/herb/ui/validator/formdata"
+	"github.com/herb-go/herb/ui/render"
+)
+{{ if .Confirmed.CreateForm -}}
+{{ if .Columns.CanCreate -}}
+{{ if .Confirmed.WithCreate -}}
+//ActionCreate{{.Name.Pascal}} create {{.Name.Raw}} model with Create{{.Name.Pascal}}Form.
+func ActionCreate{{.Name.Pascal}}(w http.ResponseWriter, r *http.Request) {
+	form := forms.NewCreate{{.Name.Pascal}}Form()
+	if formdata.MustValidateJSONRequest(r, form) {
+		model ,err:= form.Model()
+        if err!=nil{
+            panic(err)
+        }        
+		_ , err=models.{{.Name.Pascal}}.Insert(model)
+        if err!=nil{
+            panic(err)
+        }
+		render.MustJSON(w, outputs.MustConvertOutput{{.Name.Pascal}}(model), 200)
+	} else {
+		formdata.MustRenderErrorsJSON(w, form)
+	}
+}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{ if .Confirmed.CreateOutput -}}
+{{ if .Columns.HasPrimayKey -}}
+{{ if .Confirmed.WithRead }}
+
+//ActionGet{{.Name.Pascal}} get {{.Name.Raw}} model by primary key in url.
+func ActionGet{{.Name.Pascal}}(w http.ResponseWriter, r *http.Request){
+    pk:=forms.MustGet{{.Name.Pascal}}PrimaryKeyFromRequest(r)
+    {{ if eq .Columns.FirstPrimayKey.ColumnType "int" -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==0{        
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    } 
+    {{- else -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==""{        
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    }     
+    {{- end }}
+    model, err := models.{{.Name.Pascal}}.FindByPrimaryKey(pk)
+	if err!=nil{
+        panic(err)
+    }
+	if model == nil {
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
+	render.MustJSON(w, outputs.MustConvertOutput{{.Name.Pascal}}(model), 200)
+}
+{{- end -}}
+{{- end }}
+{{- end }}
+
+{{ if .Confirmed.CreateForm -}}
+{{ if .Columns.HasPrimayKey -}}
+{{ if .Confirmed.WithUpdate -}}
+
+//ActionUpdate{{.Name.Pascal}} : update  {{.Name.Raw}} model by primary key in url and  FormUpdate{{.Name.Pascal}}.
+func ActionUpdate{{.Name.Pascal}}(w http.ResponseWriter, r *http.Request) {
+    pk:=forms.MustGet{{.Name.Pascal}}PrimaryKeyFromRequest(r)
+    {{if eq .Columns.FirstPrimayKey.ColumnType "int" -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==0{        
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    } 
+    {{- else -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==""{        
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    }     
+    {{- end }}
+    model, err := models.{{.Name.Pascal}}.FindByPrimaryKey(pk)
+	if err!=nil{
+        panic(err)
+    }    
+	form := forms.NewUpdate{{.Name.Pascal}}Form()
+	if formdata.MustValidateJSONRequest(r, form) {
+		 err := form.Apply(model)
+         if err!=nil{
+             panic(err)
+         }
+		_ , err = models.{{.Name.Pascal}}.Update(pk,model)
+        if err!=nil{
+            panic(err)
+        }
+		render.MustJSON(w, model, 200)
+	} else {
+		formdata.MustRenderErrorsJSON(w, form)
+	}
+}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{ if .Columns.HasPrimayKey -}}
+{{ if .Confirmed.WithDelete -}}
+
+//ActionDelete{{.Name.Pascal}} delete {{.Name.Raw}} model by primary key in url.
+func ActionDelete{{.Name.Pascal}}(w http.ResponseWriter, r *http.Request) {
+    var err error
+   pk:=forms.MustGet{{.Name.Pascal}}PrimaryKeyFromRequest(r)
+    {{if eq .Columns.FirstPrimayKey.ColumnType "int" -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==0{        
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    } 
+    {{- else -}}
+    {{ if not .Columns.FirstPrimayKey.NotNull -}}
+    if pk==nil{
+        {{else -}}
+    if pk==""{
+        {{end -}}
+        http.Error(w,http.StatusText(404),404)
+        return
+    }     
+    {{- end}}
+    _ , err = models.{{.Name.Pascal}}.Delete(pk)
+    if err!=nil{
+        panic(err)
+    }
+   	render.MustJSON(w, "ok", 200)
+}
+{{- end }}
+{{- end }}
+
+{{ if .Confirmed.CreateOutput -}}
+{{ if .Confirmed.WithList -}}
+//ActionList{{.Name.Pascal}} list {{.Name.Raw}} models by request params.
+func ActionList{{.Name.Pascal}}(w http.ResponseWriter, r *http.Request) {
+       	render.MustJSON(w, mustList{{.Name.Pascal}}Models(r), 200)
+}
+
+func mustList{{.Name.Pascal}}Models(r *http.Request) map[string]interface{}{
+    p:=forms.MustGet{{.Name.Pascal}}ParamsFromRequest(r)
+    modelsSelect:=models.{{.Name.Pascal}}.BuildSelect()
+    p.ApplyToModelsSelect(modelsSelect)
+    modellist,err:=models.{{.Name.Pascal}}.FindAll(modelsSelect)
+    if err!=nil{
+        panic(err)
+    }
+    countSelect:=models.{{.Name.Pascal}}.BuildCount()
+    p.ApplyToCountSelect(countSelect)
+    result,err:=models.{{.Name.Pascal}}.Count(countSelect)
+    if err!=nil{
+        panic(err)
+    }
+    return map[string]interface{}{
+        "Items":outputs.MustConvertOutputList{{.Name.Pascal}}(modellist),
+        "Count":result,
+    }
+}
+
+{{- end }}
+{{- end -}}
+

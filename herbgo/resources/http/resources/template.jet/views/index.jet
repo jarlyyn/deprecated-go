@@ -1,0 +1,4 @@
+{{extends "layouts/main.jet"}}
+{{block body()}}
+hello world.
+{{end}}

@@ -1,0 +1,24 @@
+package {{.Lower}}
+
+import (
+	"modules/app"
+
+	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/herb/model/sql/querybuilder"
+	"github.com/herb-go/util"
+)
+//ModuleName module name
+const ModuleName="100{{.LowerWithParentDotSeparated}}"
+
+//SQL database sql db
+var SQL = db.New()
+//QueryBuilder db quesry builder
+var QueryBuilder = querybuilder.New()
+
+func init() {
+	util.RegisterModule(ModuleName, func() {
+		util.Must(SQL.Init(app.{{.PascalWithParents}}))
+		QueryBuilder.Driver=SQL.Driver()
+		querybuilder.Debug = app.Development.Debug
+	})
+}

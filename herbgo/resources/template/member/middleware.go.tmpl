@@ -1,0 +1,42 @@
+package middlewares
+
+import (
+	membermodule "modules/{{.Name.LowerWithParent}}"
+	"modules/app"
+
+	"github.com/herb-go/herb/middleware"
+	"github.com/herb-go/herb/user"
+	"github.com/herb-go/util"
+)
+
+//{{.Name.Pascal}}LoginURL login url for {{.Name.Pascal}} module. 
+var {{.Name.Pascal}}LoginURL="/{{.Name.Lower}}/login"
+
+//{{.Name.Pascal}}LoginCookieName cookie name used in login redirector for {{.Name.Pascal}} module. 
+var {{.Name.Pascal}}LoginCookieName="login-redirect-{{.Name.Lower}}"
+
+//{{.Name.Pascal}}LoginRedirector login redirector for  {{.Name.Pascal}} module. 
+var {{.Name.Pascal}}LoginRedirector  *user.LoginRedirector
+
+//Middleware{{.Name.Pascal}}LoginReqiured login required middleware for {{.Name.Pascal}} module. 
+var Middleware{{.Name.Pascal}}LoginReqiured middleware.Middleware
+
+//Middleware{{.Name.Pascal}}LoginOrRedirect  logged in ro redirect to login url middleware for {{.Name.Pascal}} module. 
+var Middleware{{.Name.Pascal}}LoginOrRedirect middleware.Middleware
+
+//Middleware{{.Name.Pascal}}Logout logout middleware for {{.Name.Pascal}} module.
+var Middleware{{.Name.Pascal}}Logout middleware.Middleware
+
+//MiddlewareInstall{{.Name.Pascal}}Session for session install middleare for {{.Name.Pascal}} module.
+//You must use this middleware in router first when you need use member module.
+var MiddlewareInstall{{.Name.Pascal}}Session middleware.Middleware
+
+func init() {
+	util.RegisterInitiator(ModuleName, "{{.Name.Lower}}middlewares", func() {
+		{{.Name.Pascal}}LoginRedirector = user.NewLoginRedirector(app.HTTP.Config.BaseURL+{{.Name.Pascal}}LoginURL, {{.Name.Pascal}}LoginCookieName)
+		Middleware{{.Name.Pascal}}LoginOrRedirect ={{.Name.Pascal}}LoginRedirector.Middleware(membermodule.Member)
+		Middleware{{.Name.Pascal}}LoginReqiured = user.LoginRequiredMiddleware(membermodule.Member, nil)
+        Middleware{{.Name.Pascal}}Logout=membermodule.Member.LogoutMiddleware()
+        MiddlewareInstall{{.Name.Pascal}}Session=membermodule.Session.InstallMiddleware()
+	})
+}

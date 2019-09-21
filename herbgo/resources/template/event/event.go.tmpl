@@ -1,0 +1,17 @@
+package appevents
+
+import "github.com/herb-go/herb/events"
+
+//{{.Pascal}} Event type of {{.Raw}}.
+var {{.Pascal}} = events.Type("{{.Lower}}")
+
+//Emit{{.Pascal}} emit {{.Raw}} event with  given target and data
+var Emit{{.Pascal}} = func(target string, data interface{}) bool {
+	return events.Emit({{.Pascal}}.NewEvent().
+		WithTarget(target).
+		WithData(data),
+	)
+}
+
+//On{{.Pascal}} register {{.Raw}} event handler.
+var On{{.Pascal}} = events.WrapOn({{.Pascal}})

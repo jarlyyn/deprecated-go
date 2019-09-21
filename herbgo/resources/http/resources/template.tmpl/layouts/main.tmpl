@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">            
+	  <meta charset="UTF-8" />    
+    <title>{{.Name}}|{{.Title}}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="language" content="zh_cn" />
+    <meta name="renderer" content="webkit"/>
+    <meta name="referrer" content="always" />    
+    <meta name="keywords" content="{{.MetaKeywords}}" />
+    <meta name="description" content="{{.MetaDescription}}" />
+    <link rel="shortcut icon" href="{{.SkinPath}}/images/favicon.png" />
+    <link rel="stylesheet" type="text/css" media="screen" href="{{.SkinPath}}/css/main.css">    
+</head>
+<body>
+<div id="content">
+	{{template "content" .}}
+</div>
+<script type="text/javascript" src="{{.SkinPath}}/js/app.js"></script>
+</body>
+</html>

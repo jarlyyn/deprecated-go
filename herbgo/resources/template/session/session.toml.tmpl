@@ -1,0 +1,14 @@
+# DriverName="cookie"
+DriverName="cache"
+CookieName="herbgo-session"
+#ClientStoreKey="testkey"
+CookieSecure=false
+#TokenLifetimeInHour=120
+TokenLifetimeInday=5
+[Cache]
+        Driver="freecache"
+        TTL=3600
+        Length=128
+        PrefixMode="raw"
+[Cache.Config]
+       Size=50000000

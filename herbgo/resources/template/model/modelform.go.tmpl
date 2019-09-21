@@ -1,0 +1,282 @@
+package forms
+
+{{$Name := .Name}}
+
+import (
+    {{ if or ( and (.Columns.CanCreate) ( .Confirmed.WithCreate) ) (  .Confirmed.WithUpdate ) ( .Confirmed.WithRead)   (.Confirmed.WithList) (.Confirmed.WithDelete) -}}
+	"net/http"
+    {{- end }}
+	{{if .Columns.HasTime}}
+    "time"
+    {{end -}}
+     {{- if or (eq .Columns.FirstPrimayKey.ColumnType "int") ( .Confirmed.WithPager ) }}
+    "strconv"
+    {{ end -}}
+    {{ if and (.Columns.HasPrimayKey)  ( or (.Confirmed.WithRead) ( .Confirmed.WithUpdate ) ( .Confirmed.WithDelete )) -}}
+    "github.com/herb-go/herb/middleware/router"
+    {{- end}}
+    {{ if or (and (.Columns.CanCreate) ( .Confirmed.WithCreate) ) ( and ( .Columns.HasPrimayKey ) ( .Confirmed.WithUpdate)) }}
+    {{if  .Confirmed.CreateForm }}
+	"github.com/herb-go/herb/ui/validator/formdata"
+    "modules/messages"
+    {{- end}}
+    {{- end}}
+    {{ if .Confirmed.WithList -}}
+	"github.com/herb-go/herb/model/sql/querybuilder"    
+    {{- end }}
+    "modules/{{.Module}}/models"
+)
+
+{{ if .Columns.CanCreate -}}
+{{ if and (.Confirmed.WithCreate) (.Confirmed.CreateForm) -}}
+//Create{{.Name.Pascal}}FormFieldLabels : field labels for Create{{.Name.Pascal}}Form
+var Create{{.Name.Pascal}}FormFieldLabels = map[string]string{ 
+    {{- range .Columns.Columns}}
+    {{- if and ( not .AutoValue) ( not .PrimayKey)}}
+    "{{.Name}}": "{{.Field}}",
+    {{ end -}}
+    {{end -}}
+    
+}
+
+
+//Create{{.Name.Pascal}}FormID form id of form create {{.Name.Raw}}
+const Create{{.Name.Pascal}}FormID = "form{{.Name.LowerWithParentDotSeparated}}"
+
+//NewCreate{{.Name.Pascal}}Form create new {{.Name.Raw}} form
+func NewCreate{{.Name.Pascal}}Form() *Create{{.Name.Pascal}}Form{
+	form:=&Create{{.Name.Pascal}}Form{}
+	form.SetModelID(Create{{.Name.Pascal}}FormID)
+	form.SetFieldLabels(Create{{.Name.Pascal}}FormFieldLabels)
+	return form
+}
+
+
+//Create{{.Name.Pascal}}Form : form for {{.Name.Raw}} model creating.
+type Create{{.Name.Pascal}}Form struct {
+	formdata.Form
+    {{ range .Columns.Columns -}}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    {{.Name}} {{if not .NotNull}}*{{end}}{{.ColumnType}}
+    {{end -}}
+    {{- end -}}
+}
+
+//Validate : validate Create{{.Name.Pascal}}Form
+func (f *Create{{.Name.Pascal}}Form) Validate() error {
+    {{ range .Columns.Columns -}}
+    {{- if .NotNull -}}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    {{- if  eq .ColumnType "string" -}}
+    f.ValidateFieldf(f.{{.Name}} != "", "{{.Name}}", messages.MsgFormFieldRequired) 
+    {{else if eq .ColumnType "int" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired) 
+    {{else if eq .ColumnType "int64" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "float32" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "float64" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "time.Time" -}}
+    f.ValidateFieldf(!f.{{.Name}}.IsZero() , "{{.Name}}", messages.MsgFormFieldRequired)
+    {{end}}
+    {{- end -}}
+    {{- end -}}
+    {{- end -}}
+	//if !f.HasError() {
+	//}
+	return nil
+}
+
+//InitWithRequest : init Create{{.Name.Pascal}}Form with request.
+func (f *Create{{.Name.Pascal}}Form) InitWithRequest(r *http.Request) error {
+	return nil
+}
+
+//Model : create {{.Name.Raw}} model from Create{{.Name.Pascal}}Form.
+func (f *Create{{.Name.Pascal}}Form) Model() (*models.{{.Name.Pascal}}Model,error) {
+    model:=models.New{{.Name.Pascal}}Model()
+    {{ range .Columns.Columns }}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    model.{{.Name}}=f.{{.Name}}
+    {{end -}}
+    {{- end -}}
+    return model,nil
+}
+
+{{- end }}
+{{- end }}
+
+{{ if .Columns.HasPrimayKey -}}
+{{ if and (.Confirmed.WithUpdate) ( (.Confirmed.CreateForm)) -}}
+//Update{{.Name.Pascal}}FormFieldLabels : field labels for Update{{.Name.Pascal}}Form
+var Update{{.Name.Pascal}}FormFieldLabels = map[string]string{ {{range .Columns.Columns}}{{if and ( not .AutoValue) ( not .PrimayKey)}}
+    "{{.Name}}": "{{.Field}}",{{end}}{{end}}
+    }
+
+//Update{{.Name.Pascal}}FormModelID form id of form create {{.Name.Raw}}
+const Update{{.Name.Pascal}}FormModelID = "form{{.Name.LowerWithParentDotSeparated}}"
+
+//NewUpdate{{.Name.Pascal}}Form create new update {{.Name.Raw}} form
+func NewUpdate{{.Name.Pascal}}Form() *Update{{.Name.Pascal}}Form{
+	form:=&Update{{.Name.Pascal}}Form{}
+	form.SetModelID(Update{{.Name.Pascal}}FormModelID)
+	form.SetFieldLabels(Update{{.Name.Pascal}}FormFieldLabels)
+	return form
+}
+
+
+//Update{{.Name.Pascal}}Form : form for {{.Name.Raw}} model updating.
+type Update{{.Name.Pascal}}Form struct {
+	formdata.Form
+    {{ range .Columns.Columns -}}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    {{.Name}} {{if not .NotNull}}*{{end}}{{.ColumnType}}
+    {{ end -}}
+    {{- end -}}    
+}
+
+//Validate : validate Update{{.Name.Pascal}}Form
+func (f *Update{{.Name.Pascal}}Form) Validate() error {
+    {{ range .Columns.Columns -}}
+    {{- if .NotNull -}}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    {{- if  eq .ColumnType "string" -}}
+    f.ValidateFieldf(f.{{.Name}} != "", "{{.Name}}", messages.MsgFormFieldRequired) 
+    {{else if eq .ColumnType "int" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired) 
+    {{else if eq .ColumnType "int64" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "float32" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "float64" -}}
+    f.ValidateFieldf(f.{{.Name}} != 0, "{{.Name}}", messages.MsgFormFieldRequired)
+    {{else if eq .ColumnType "time.Time" -}}
+    f.ValidateFieldf(!f.{{.Name}}.IsZero() , "{{.Name}}", messages.MsgFormFieldRequired)
+    {{- end -}}
+    {{- end -}}
+    {{- end -}}
+    {{- end -}}
+	//if !f.HasError() {
+	//}
+	return nil
+}
+
+//InitWithRequest : init Update{{.Name.Pascal}}Form with request.
+func (f *Update{{.Name.Pascal}}Form) InitWithRequest(r *http.Request) error {
+	f.SetFieldLabels(Update{{.Name.Pascal}}FormFieldLabels)
+	return nil
+}
+
+//Apply : apply Update{{.Name.Pascal}}Form to given {{.Name.Pascal}}Model.
+func (f *Update{{.Name.Pascal}}Form) Apply(model *models.{{.Name.Pascal}}Model) error  {
+    {{ range .Columns.Columns }}
+    {{- if and ( not .AutoValue) ( not .PrimayKey) -}}
+    model.{{.Name}}=f.{{.Name}}
+    {{end -}}
+    {{- end -}}
+    return  nil
+}
+{{- end }}
+
+{{ if or (.Confirmed.WithRead) (.Confirmed.WithUpdate) (.Confirmed.WithDelete) -}}
+//MustGet{{.Name.Pascal}}PrimaryKeyFromRequest : get {{.Name.Pascal}}PrimaryKey from request.
+//Panic if any error raised.
+func MustGet{{.Name.Pascal}}PrimaryKeyFromRequest(r *http.Request) models.{{.Name.Pascal}}PrimaryKey {
+    //Get primary key from request router params.
+    var pk models.{{.Name.Pascal}}PrimaryKey
+    id:=router.GetParams(r).Get("id")
+    if id == "" {
+        {{ if not .Columns.FirstPrimayKey.NotNull }}
+        return nil
+        {{else}}
+        {{ if eq .Columns.FirstPrimayKey.ColumnType "int" -}}
+        return 0
+        {{ else -}}
+        return ""
+        {{end -}}
+        {{end}}
+    }{{ if eq .Columns.FirstPrimayKey.ColumnType "int"}}
+    idval,err:=strconv.Atoi(id)
+    if err!=nil{
+        {{ if not .Columns.FirstPrimayKey.NotNull }}
+        return nil
+        {{else}}
+        return 0
+        {{end}}
+    }
+    pk=models.{{.Name.Pascal}}PrimaryKey({{ if not .Columns.FirstPrimayKey.NotNull }}&{{end}}idval){{else}}
+    pk=models.{{.Name.Pascal}}PrimaryKey({{ if not .Columns.FirstPrimayKey.NotNull }}&{{end}}id){{end}}
+    return pk
+}
+{{- end }}
+{{- end }}
+
+{{ if .Confirmed.WithList -}}
+
+//{{.Name.Pascal}}SortableFields fields which fields can be sorted.
+//Comment any filed if your disallow this field being sorted.
+var {{.Name.Pascal}}{{.ID.Pascal}}SortableFields=map[string]string{
+    {{range .Columns.Columns -}}
+    "{{.Name}}":models.{{$Name.Pascal}}FieldAlias{{.Name}},
+    {{end -}}
+
+}
+
+//{{.Name.Pascal}}Params  {{.Name.Raw}} request params struct
+type {{.Name.Pascal}}Params struct{
+    {{ if .Confirmed.WithPager -}}
+    Page int
+    {{- end }}
+    Sorted string
+    Asc bool
+}
+
+//ApplyToModelsSelect apply request params to models select query.
+func (p *{{.Name.Pascal}}Params) ApplyToModelsSelect(Select *querybuilder.Select){
+    p.ApplyToCountSelect(Select)
+    if p.Sorted!=""{
+        Select.OrderBy.Add(p.Sorted,p.Asc)
+    }    
+    {{ if .Confirmed.WithPager -}}
+    var limit=10
+    var offset=(p.Page-1)*limit
+    if offset<0{
+        offset=0
+    }
+    Select.Limit.SetLimit(limit)
+    Select.Limit.SetOffset(offset)
+    {{- end }}
+}
+
+//ApplyToCountSelect apply request params to models count query.
+func (p *{{.Name.Pascal}}Params) ApplyToCountSelect(Select *querybuilder.Select){
+
+}
+
+//MustGet{{.Name.Pascal}}ParamsFromRequest get params from request;
+//Panic if any error raised.
+func MustGet{{.Name.Pascal}}ParamsFromRequest(r *http.Request) (*{{.Name.Pascal}}Params) {
+    p:=&{{.Name.Pascal}}Params{}
+    {{ if .Confirmed.WithPager -}}
+    page := r.URL.Query().Get("page")
+	if page != "" {
+		pageInt, err := strconv.Atoi(page)
+		if err == nil {
+			p.Page = pageInt
+		}
+	}
+	if p.Page <1 {
+		p.Page = 1
+	}
+    {{- end }}
+    sorted:=r.URL.Query().Get("sorted")
+    if sorted!="" &&  {{.Name.Pascal}}{{.ID.Pascal}}SortableFields[sorted]!=""{
+        p.Sorted={{.Name.Pascal}}SortableFields[sorted]
+        order:=r.URL.Query().Get("order")
+        p.Asc=(order!="desc")
+    }
+    return p
+}
+
+{{- end }}

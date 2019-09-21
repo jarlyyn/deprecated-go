@@ -1,0 +1,234 @@
+package models
+
+import (
+	"database/sql"
+	database "modules/{{.Columns.Database}}"
+    "modules/{{.Module}}"
+	{{if .Columns.HasTime}}"time"
+    {{end -}}
+
+	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/herb/model/sql/querybuilder"
+	"github.com/herb-go/util"
+)
+
+{{$Name := .Name}}
+
+//{{$Name.Pascal}}TableName table name of model  {{.Name.Raw}}
+const {{$Name.Pascal}}TableName= "{{.Name.Raw}}"
+
+//{{$Name.Pascal}}TableAlias table alias of model  {{.Name.Raw}} which will not changed when table name changed.
+const {{$Name.Pascal}}TableAlias="{{.Name.Raw}}"
+
+//{{.Name.Pascal}}Mapper : table {{.Name.Raw}}  mapper struct
+type {{.Name.Pascal}}Mapper struct{
+   	*querybuilder.Table
+}
+
+//BuildSelect : build select query and bind model for table {{.Name.Raw}} 
+func (mapper *{{.Name.Pascal}}Mapper) BuildSelect() *querybuilder.Select{
+	Select:=mapper.NewSelect()
+	Select.Select.AddFields(mapper.Fields(nil))
+	return Select
+}
+
+
+//BuildInsert : build insert query and bind model for table {{.Name.Raw}} 
+func (mapper *{{.Name.Pascal}}Mapper) BuildInsert(model *{{.Name.Pascal}}Model) *querybuilder.Insert{
+	Insert:=mapper.NewInsert()
+	Insert.Insert.AddFields(mapper.FieldsInsert(model))
+    return Insert
+
+}
+//BuildUpdate : build update query and bind model for table {{.Name.Raw}} 
+func (mapper *{{.Name.Pascal}}Mapper) BuildUpdate(pk interface{} ,model *{{.Name.Pascal}}Model) *querybuilder.Update{
+	Update:=mapper.NewUpdate()
+	Update.Update.AddFields(mapper.FieldsUpdate(model))
+	Update.Where.Condition=mapper.BuildByPKQuery(pk)
+	return Update
+}
+
+//BuildDelete : build delete query for table {{.Name.Raw}} with given primary key. 
+func (mapper *{{.Name.Pascal}}Mapper) BuildDelete(pk interface{}) *querybuilder.Delete{
+	Delete:=mapper.NewDelete()
+	Delete.Where.Condition = mapper.BuildByPKQuery(pk)
+	return Delete
+}
+
+//Insert : insert {{.Name.Raw}}  model to database;
+func (mapper *{{.Name.Pascal}}Mapper) Insert(model *{{.Name.Pascal}}Model) (sql.Result,error){
+	err := model.BeforeInsert()
+	if err != nil {
+		return nil, err
+	}
+	Insert := mapper.BuildInsert(model)
+	result, err := Insert.Query().Exec(mapper)
+	if err != nil {
+		return nil, err
+	}
+	return result, model.AfterInsert()
+}
+
+//Update : update {{.Name.Raw}}  model in database;
+func (mapper *{{.Name.Pascal}}Mapper) Update(pk interface{} ,model *{{.Name.Pascal}}Model) (sql.Result,error){
+	err := model.BeforeUpdate()
+	if err != nil {
+		return nil, err
+	}
+	Update := mapper.BuildUpdate(pk, model)
+	result, err := Update.Query().Exec(mapper)
+	if err != nil {
+		return nil, err
+	}
+	return result, model.AfterUpdate()
+}
+
+//Delete : delete {{.Name.Raw}}  model in database;
+func (mapper *{{.Name.Pascal}}Mapper) Delete(pk interface{}) (sql.Result,error){
+	model, err := mapper.FindByPrimaryKey(pk)
+	if err != nil {
+		return nil, err
+	}
+	Delete := mapper.BuildDelete(pk)
+	r, err := Delete.Query().Exec(mapper)
+	if err != nil {
+		return r, err
+	}
+	err = model.AfterDelete()
+	if err != nil {
+		return nil, err
+	}
+	return r, nil}
+
+//Find : find {{.Name.Pascal}}Model from table {{.Name.Raw}} by given select query.
+func (mapper *{{.Name.Pascal}}Mapper) Find(Select *querybuilder.Select) (*{{.Name.Pascal}}Model,error){
+    model:=New{{.Name.Pascal}}Model()
+	row := Select.QueryRow(mapper)
+	err := Select.Result().
+		BindFields(mapper.Fields(model)).
+		ScanFrom(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return model, model.AfterFind()
+}
+
+//FindByPrimaryKey find {{.Name.Pascal}}Model from table {{.Name.Raw}} by primary key.
+func (mapper *{{.Name.Pascal}}Mapper) FindByPrimaryKey(pk interface{}) (*{{.Name.Pascal}}Model,error){
+    Select:=mapper.BuildSelect()
+	Select.Where.Condition = mapper.BuildByPKQuery(pk)
+    model:=New{{.Name.Pascal}}Model()
+	row := Select.QueryRow(mapper)
+	err := Select.Result().
+		BindFields(mapper.Fields(model)).
+		ScanFrom(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return model, model.AfterFind()
+}
+
+//FindByField find {{.Name.Pascal}}Model from table {{.Name.Raw}} by given field name and field value.
+func (mapper *{{.Name.Pascal}}Mapper) FindByField(fieldName string, fieldValue interface{}) (*{{.Name.Pascal}}Model,error){
+    Select:=mapper.BuildSelect()
+	Select.Where.Condition = mapper.QueryBuilder().Equal(fieldName, fieldValue)
+    model:=New{{.Name.Pascal}}Model()
+	row := Select.QueryRow(mapper)
+	err := Select.Result().
+		BindFields(mapper.Fields(model)).
+		ScanFrom(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return model, model.AfterFind()
+}
+
+//FindByFields : find {{.Name.Pascal}}Model from table {{.Name.Raw}} by given field name and field value map.
+func (mapper *{{.Name.Pascal}}Mapper) FindByFields(fields map[string]interface{}) (*{{.Name.Pascal}}Model,error){
+    Select:=mapper.BuildSelect()
+    for k,v:=range fields{
+	    Select.Where.Condition.And(mapper.QueryBuilder().Equal(k, v))
+    }
+    model:=New{{.Name.Pascal}}Model()
+	row := Select.QueryRow(mapper)
+	err := Select.Result().
+		BindFields(mapper.Fields(model)).
+		ScanFrom(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return model, model.AfterFind()
+}
+
+//FindAll : find all {{.Name.Pascal}}Model from table {{.Name.Raw}} by given select query.
+func (mapper *{{.Name.Pascal}}Mapper) FindAll(Select *querybuilder.Select) ([]*{{.Name.Pascal}}Model,error){
+    var result=[]*{{.Name.Pascal}}Model{}
+	rows, err := Select.QueryRows(mapper)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+	    model:=New{{.Name.Pascal}}Model()
+		err = Select.Result().
+			BindFields(mapper.Fields(model)).
+			ScanFrom(rows)
+		if err != nil {
+			return nil, err
+		}
+		err = model.AfterFind()
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, model)
+	}
+    return result,nil
+}
+
+
+//{{.Name.Pascal}}  : table {{.Name.Raw}}  mapper instance
+var {{.Name.Pascal }} *{{.Name.Pascal }}Mapper
+
+// {{.Name.Pascal }}Database database by which settings mapper query data.
+//You can use can create transaction with this database.Example:
+//func ExampleTx(){
+//	txdb, err := db.NewTxDB(models.{{.Name.Pascal }}Database)
+//	if err != nil {
+//		panic(err)
+//	}
+//	{{.Name.Pascal }}Tx := models.New{{.Name.Pascal }}Mapper(txdb)
+//	defer txdb.Rollback()
+//  {{.Name.Pascal }}Tx.DoSomething...
+//	return txdb.Commit()
+//}
+var {{.Name.Pascal }}Database db.Database
+
+
+//New{{.Name.Pascal}}Mapper create new table  {{.Name.Raw}} mapper
+func New{{.Name.Pascal}}Mapper(database db.Database) *{{.Name.Pascal}}Mapper {
+	var sqltable = db.NewTable(database, {{.Name.Pascal}}TableName)
+	sqltable.SetAlias({{.Name.Pascal}}TableAlias)
+	return &{{.Name.Pascal}}Mapper{
+		Table: querybuilder.NewTable(sqltable),
+	}
+}
+
+
+func init() {
+	util.RegisterInitiator({{.Name.Lower}}.ModuleName, "{{.Module}}models", func() {
+			{{.Name.Pascal }}Database=database.SQL
+			{{.Name.Pascal}} = New{{.Name.Pascal}}Mapper({{.Name.Pascal }}Database)
+	})
+}

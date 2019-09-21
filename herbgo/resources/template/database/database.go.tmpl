@@ -1,0 +1,18 @@
+package app
+
+import (
+	"github.com/herb-go/herb/model/sql/db"
+	"github.com/herb-go/util"
+	"github.com/herb-go/util/config"
+	"github.com/herb-go/util/config/tomlconfig"
+
+)
+
+var {{.PascalWithParents}} *db.Config
+
+func init() {
+	config.RegisterLoader(util.Config("/{{.LowerWithParentDotSeparated}}.toml"), func(configpath string) {
+		{{.PascalWithParents}} = db.NewConfig()
+		util.Must(tomlconfig.Load(configpath, {{.PascalWithParents}}))
+	})
+}

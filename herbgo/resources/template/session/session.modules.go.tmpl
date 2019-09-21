@@ -1,0 +1,19 @@
+package {{.Lower}}
+
+import (
+	"modules/app"
+	"github.com/herb-go/herb/cache/session"
+	"github.com/herb-go/util"
+)
+
+//ModuleName module name
+const ModuleName="100{{.LowerWithParentDotSeparated}}"
+
+//{{.Pascal}} app session component.
+var {{.Pascal}} = session.New()
+
+func init() {
+	util.RegisterModule(ModuleName, func() {
+		util.Must({{.Pascal}}.Init(&app.{{.PascalWithParents}}))
+	})
+}

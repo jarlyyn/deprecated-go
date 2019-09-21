@@ -1,0 +1,17 @@
+package app
+
+import (
+	"github.com/herb-go/herb/cache/session"
+	"github.com/herb-go/util"
+	"github.com/herb-go/util/config"
+	"github.com/herb-go/util/config/tomlconfig"
+
+)
+//{{.PascalWithParents}} user session module
+var {{.PascalWithParents}} = session.StoreConfig{}
+
+func init() {
+	config.RegisterLoader(util.Config("/{{.LowerWithParentDotSeparated}}.toml"), func(configpath string) {
+		util.Must(tomlconfig.Load(configpath, &{{.PascalWithParents}}))
+	})
+}

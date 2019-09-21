@@ -1,0 +1,28 @@
+package app
+
+import (
+	"github.com/herb-go/fetch"
+	"github.com/herb-go/util"
+	"github.com/herb-go/util/config"
+	"github.com/herb-go/util/config/tomlconfig"
+)
+
+//{{.PascalWithParents}}Config {{.Raw}} config data struct.
+//Fields must can be unmarshaled by Toml lib.
+//You comment this struct if you use third party config struct.
+type {{.PascalWithParents}}Config struct {
+	fetch.Clients
+	Server fetch.Server
+}
+
+//{{.PascalWithParents}} config instance of {{.Raw}}.
+var {{.PascalWithParents}} = {{.PascalWithParents}}Config{}
+
+func init() {
+	//Register loader which will be execute when Config.LoadAll func be called.
+	//You can put your init code after load.
+	//You must panic if any error rasied when init.
+	config.RegisterLoader(util.Config("/{{.LowerWithParentDotSeparated}}.toml"),func(configpath string) {
+		util.Must(tomlconfig.Load(configpath, &{{.PascalWithParents}}))
+	})
+}

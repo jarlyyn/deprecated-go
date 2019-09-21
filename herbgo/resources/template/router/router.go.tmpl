@@ -1,0 +1,19 @@
+package routers
+
+import (
+	"github.com/herb-go/herb/middleware"
+	"github.com/herb-go/herb/middleware/router"
+	"github.com/herb-go/herb/middleware/router/httprouter"
+)
+
+//{{.Pascal}}Middlewares middlewares which should be used on router.
+var {{.Pascal}}Middlewares = func() middleware.Middlewares {
+	return middleware.Middlewares{}
+}
+
+//new{{.Pascal}}Router create new {{.Raw}} Router
+func new{{.Pascal}}Router() router.Router {
+	var Router = httprouter.New()
+	//Put your router configure code here
+	return Router
+}

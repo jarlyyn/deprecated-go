@@ -1,0 +1,53 @@
+package outputs
+
+import (
+    "modules/{{.Module}}/models"
+)
+
+//New{{.Name.Pascal}}Output create new {{.Name.Pascal}}Output
+func New{{.Name.Pascal}}Output() *{{.Name.Pascal}}Output{
+     return &{{.Name.Pascal}}Output{}
+}
+
+//{{.Name.Pascal}}Output : {{.Name.Raw }} output struct
+type {{.Name.Pascal}}Output struct {
+	{{- range .Columns.Columns}}
+	{{.Name}} {{if not .NotNull }}*{{end}}{{.ColumnType}}
+	{{- end}}
+}
+
+//Convert : convert from  {{.Name.Raw }} model.
+//Return any error if raised.
+func (o *{{.Name.Pascal}}Output) Convert(model *models.{{.Name.Pascal}}Model) error{
+    {{- range .Columns.Columns}}
+	o.{{.Name}} = model.{{.Name}}
+	{{- end}}
+    return nil
+}
+
+//MustConvertOutput{{.Name.Pascal}} : convert  {{.Name.Raw }} model to  {{.Name.Raw }} output .
+//Panic if any error raised.
+func MustConvertOutput{{.Name.Pascal}}(model *models.{{.Name.Pascal}}Model) *{{.Name.Pascal}}Output{
+    output:=New{{.Name.Pascal}}Output()
+    err:=output.Convert(model)
+    if err!=nil{
+        panic(err)
+    }
+    return output
+}
+
+
+//MustConvertOutputList{{.Name.Pascal}} : convert  {{.Name.Raw }} models to  {{.Name.Raw }} output list.
+//Panic if any error raised.
+func MustConvertOutputList{{.Name.Pascal}}(models []*models.{{.Name.Pascal}}Model) []*{{.Name.Pascal}}Output{
+    output:=make([]*{{.Name.Pascal}}Output,len(models))
+    for k,v:=range models{
+        o:=&{{.Name.Pascal}}Output{}
+        err:=o.Convert(v)
+        if err!=nil{
+            panic(err)
+        }
+        output[k]=o
+    }
+    return output
+}

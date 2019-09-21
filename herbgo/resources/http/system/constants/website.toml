@@ -1,0 +1,10 @@
+#Website name
+Name="Herbgo app"
+#Website description
+Description="New herbgo app"
+#Website keyword.
+keywords="herbgo"
+#Admin email
+Email=""
+#Homepage url.Used in callback and email content.
+Homepage="http://127.0.0.1:8000"
